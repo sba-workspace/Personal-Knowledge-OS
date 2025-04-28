@@ -1,3 +1,6 @@
+-- Install pgvector extension if missing
+CREATE EXTENSION IF NOT EXISTS vector;
+
 -- CreateTable
 CREATE TABLE "Note" (
     "id" TEXT NOT NULL,
