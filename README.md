@@ -35,7 +35,7 @@ graph TD
 
 ---
 
-## ⚙️ Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -89,7 +89,7 @@ curl -X POST http://localhost:8000/notes \
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 poetry run pytest
@@ -97,12 +97,12 @@ poetry run pytest
 
 ---
 
-## 🛠 Planned Features
+## Planned Features
 
-- 📎 Gemini Vision integration for PDF/Image note classification
-- 📈 Knowledge graph traversal and UI
-- 🧬 Federated fine-tuning of AI on personal data
-- 📰 Automated Memex digests (weekly summary)
+- Gemini Vision integration for PDF/Image note classification
+- Knowledge graph traversal and UI
+- Federated fine-tuning of AI on personal data
+- Automated Memex digests (weekly summary)
 
 ---
 
