@@ -19,7 +19,8 @@ A full-stack, AI-powered Zettelkasten-based knowledge management system designed
 
 ## Architecture Overview
 
-```mermaid
+---
+
 graph TD
     A[User Input] --> B[Ingestion API]
     B --> C[Content Processor]
