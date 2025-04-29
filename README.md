@@ -19,20 +19,15 @@ A full-stack, AI-powered Zettelkasten-based knowledge management system designed
 
 ## Architecture Overview
 
----
+**Data Flow:**
 
-graph TD
-    A[User Input] --> B[Ingestion API]
-    B --> C[Content Processor]
-    C --> D[Gemini Classification]
-    C --> E[Vector Embedding]
-    D --> F[PostgreSQL]
-    E --> G[pgvector]
-    F --> H[Query Engine]
-    G --> H
-    H --> I[Response]
-
-
+- User Input → Ingestion API
+- Ingestion API → Content Processor
+- Content Processor → Gemini for summarization/classification
+- Content Processor → Embedding Generator → pgvector
+- Summarized Data + Embeddings → PostgreSQL + pgvector
+- Query Engine uses semantic search from embeddings
+- User receives relevant note responses
 
 ---
 
