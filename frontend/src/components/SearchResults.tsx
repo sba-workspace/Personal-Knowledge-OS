@@ -1,35 +1,25 @@
-
 import React from 'react';
-import { Search, Hash, Calendar } from 'lucide-react';
+import { Search, Hash, Calendar, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { useSearchNotes } from '@/hooks/useNotes';
 
 interface SearchResultsProps {
   query: string;
   onNoteSelect: (id: string) => void;
 }
 
-const mockSearchResults = [
-  {
-    id: '1',
-    title: 'React Architecture Patterns',
-    summary: 'Exploring different architectural patterns in React applications...',
-    snippet: 'React applications can be structured in many different ways, but following established architectural patterns can greatly improve maintainability...',
-    tags: ['React', 'Architecture'],
-    relevanceScore: 0.92,
-    updatedAt: new Date('2024-01-20'),
-  },
-  {
-    id: '4',
-    title: 'TypeScript Best Practices',
-    summary: 'A comprehensive guide to writing clean and maintainable TypeScript code.',
-    snippet: 'TypeScript provides excellent type safety for React applications. When combined with proper architectural patterns...',
-    tags: ['TypeScript', 'React'],
-    relevanceScore: 0.78,
-    updatedAt: new Date('2024-01-18'),
-  },
-];
-
 export const SearchResults = ({ query, onNoteSelect }: SearchResultsProps) => {
+  const { results, isLoading } = useSearchNotes();
+
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Searching...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -38,12 +28,12 @@ export const SearchResults = ({ query, onNoteSelect }: SearchResultsProps) => {
           <h2 className="text-2xl font-bold text-gray-900">Search Results</h2>
         </div>
         <p className="text-gray-600">
-          Found {mockSearchResults.length} results for "{query}"
+          Found {results.length} results for "{query}"
         </p>
       </div>
 
       <div className="space-y-4">
-        {mockSearchResults.map((result) => (
+        {results.map((result) => (
           <Card 
             key={result.id}
             className="p-6 cursor-pointer hover:shadow-lg transition-shadow duration-200 border border-gray-200 hover:border-blue-300"
@@ -51,16 +41,15 @@ export const SearchResults = ({ query, onNoteSelect }: SearchResultsProps) => {
           >
             <div className="flex justify-between items-start mb-3">
               <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600">
-                {result.title}
+                {result.content.slice(0, 100)}...
               </h3>
-              <div className="text-sm text-gray-500 font-medium">
-                {Math.round(result.relevanceScore * 100)}% match
-              </div>
             </div>
             
-            <p className="text-gray-700 mb-3 leading-relaxed">
-              {result.snippet}
-            </p>
+            {result.summary && (
+              <p className="text-gray-700 mb-3 leading-relaxed">
+                {result.summary}
+              </p>
+            )}
             
             <div className="flex items-center justify-between">
               <div className="flex flex-wrap gap-2">
@@ -77,14 +66,14 @@ export const SearchResults = ({ query, onNoteSelect }: SearchResultsProps) => {
               
               <div className="flex items-center text-xs text-gray-500">
                 <Calendar className="h-3 w-3 mr-1" />
-                {result.updatedAt.toLocaleDateString()}
+                {result.updatedAt ? new Date(result.updatedAt).toLocaleDateString() : 'Recently'}
               </div>
             </div>
           </Card>
         ))}
       </div>
 
-      {mockSearchResults.length === 0 && (
+      {results.length === 0 && query && (
         <div className="text-center py-12">
           <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>

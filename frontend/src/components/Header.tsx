@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { Search, Menu, User, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useSearchNotes } from '@/hooks/useNotes';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
@@ -11,11 +11,17 @@ interface HeaderProps {
 }
 
 export const Header = ({ onSearch, onToggleSidebar, isSidebarOpen }: HeaderProps) => {
-  const [searchInput, setSearchInput] = useState('');
+  const { query, setQuery } = useSearchNotes();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch(searchInput);
+    onSearch(query);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newQuery = e.target.value;
+    setQuery(newQuery);
+    onSearch(newQuery);
   };
 
   return (
@@ -46,8 +52,8 @@ export const Header = ({ onSearch, onToggleSidebar, isSidebarOpen }: HeaderProps
           <Input
             type="text"
             placeholder="Search notes, tags, or content..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            value={query}
+            onChange={handleSearchChange}
             className="pl-10 w-full"
           />
         </div>

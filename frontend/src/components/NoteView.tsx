@@ -1,64 +1,42 @@
-
 import React from 'react';
-import { ArrowLeft, Edit, Calendar, Hash, Share2 } from 'lucide-react';
+import { ArrowLeft, Edit, Calendar, Hash, Share2, Loader2, Link } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useNote, useRelatedNotes, useLinkedNotes } from '@/hooks/useNotes';
 
 interface NoteViewProps {
   noteId: string | null;
   onEdit: () => void;
   onBack: () => void;
+  onNoteSelect: (id: string) => void;
 }
 
-// Mock note data
-const mockNote = {
-  id: '1',
-  title: 'React Architecture Patterns',
-  summary: 'Exploring different architectural patterns in React applications including component composition and state management strategies.',
-  content: `# React Architecture Patterns
+export const NoteView = ({ noteId, onEdit, onBack, onNoteSelect }: NoteViewProps) => {
+  const { data: note, isLoading, error } = useNote(noteId);
+  const { data: relatedNotes } = useRelatedNotes(noteId);
+  const { data: linkedNotes } = useLinkedNotes(noteId);
 
-React applications can be structured in many different ways, but following established architectural patterns can greatly improve maintainability and scalability.
-
-## Component Composition
-
-One of the most powerful patterns in React is component composition. This allows us to build complex UIs from simple, reusable components.
-
-### Container and Presentational Components
-
-- **Container Components**: Handle state and business logic
-- **Presentational Components**: Focus purely on rendering UI
-
-## State Management Strategies
-
-### Local State
-Use \`useState\` for component-specific state that doesn't need to be shared.
-
-### Global State
-For application-wide state, consider:
-- React Context for simple cases
-- Redux for complex state management
-- Zustand for a lightweight alternative
-
-## Performance Considerations
-
-- Use React.memo for expensive renders
-- Implement proper dependency arrays in useEffect
-- Consider code splitting with React.lazy
-
-## Conclusion
-
-Choosing the right architectural pattern depends on your application's complexity and requirements.`,
-  tags: ['React', 'Architecture', 'Frontend'],
-  createdAt: new Date('2024-01-15'),
-  updatedAt: new Date('2024-01-20'),
-  linkedNotes: ['Database Design Principles', 'TypeScript Best Practices']
-};
-
-export const NoteView = ({ noteId, onEdit, onBack }: NoteViewProps) => {
   if (!noteId) {
     return (
       <div className="p-6 text-center">
         <p className="text-gray-500">Select a note to view its content</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading note...</span>
+      </div>
+    );
+  }
+
+  if (error || !note) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-red-500">Error loading note. Please try again.</p>
       </div>
     );
   }
@@ -88,22 +66,24 @@ export const NoteView = ({ noteId, onEdit, onBack }: NoteViewProps) => {
       <article className="space-y-6">
         <header>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            {mockNote.title}
+            {note.content.slice(0, 100)}...
           </h1>
           
-          <Card className="p-4 bg-blue-50 border-blue-200 mb-6">
-            <h3 className="text-sm font-medium text-blue-900 mb-2">AI Summary</h3>
-            <p className="text-blue-800 text-sm">{mockNote.summary}</p>
-          </Card>
+          {note.summary && (
+            <Card className="p-4 bg-blue-50 border-blue-200 mb-6">
+              <h3 className="text-sm font-medium text-blue-900 mb-2">AI Summary</h3>
+              <p className="text-blue-800 text-sm">{note.summary}</p>
+            </Card>
+          )}
           
           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-1" />
-              Updated {mockNote.updatedAt.toLocaleDateString()}
+              {note.updatedAt ? new Date(note.updatedAt).toLocaleDateString() : 'Recently'}
             </div>
             
             <div className="flex flex-wrap gap-2">
-              {mockNote.tags.map((tag) => (
+              {note.tags.map((tag) => (
                 <span
                   key={tag}
                   className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700"
@@ -118,21 +98,46 @@ export const NoteView = ({ noteId, onEdit, onBack }: NoteViewProps) => {
 
         <div className="prose prose-lg max-w-none">
           <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-            {mockNote.content}
+            {note.content}
           </div>
         </div>
 
-        {/* Linked Notes */}
-        {mockNote.linkedNotes.length > 0 && (
+        {/* Related Notes */}
+        {(relatedNotes && relatedNotes.length > 0) && (
           <Card className="p-4 mt-8">
-            <h3 className="text-sm font-medium text-gray-900 mb-3">Linked Notes</h3>
+            <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+              <Link className="h-4 w-4 mr-2" />
+              Related Notes
+            </h3>
             <div className="space-y-2">
-              {mockNote.linkedNotes.map((linkedNote, index) => (
+              {relatedNotes.map((relatedNote) => (
                 <button
-                  key={index}
+                  key={relatedNote.id}
+                  onClick={() => onNoteSelect(relatedNote.id)}
                   className="block text-sm text-blue-600 hover:text-blue-800 hover:underline"
                 >
-                  → {linkedNote}
+                  → {relatedNote.content.slice(0, 60)}...
+                </button>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Linked Notes */}
+        {(linkedNotes && linkedNotes.length > 0) && (
+          <Card className="p-4 mt-8">
+            <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+              <Link className="h-4 w-4 mr-2" />
+              Linked Notes
+            </h3>
+            <div className="space-y-2">
+              {linkedNotes.map((linkedNote) => (
+                <button
+                  key={linkedNote.id}
+                  onClick={() => onNoteSelect(linkedNote.id)}
+                  className="block text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  → {linkedNote.content.slice(0, 60)}...
                 </button>
               ))}
             </div>

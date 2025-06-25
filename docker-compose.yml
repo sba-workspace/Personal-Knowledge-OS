@@ -16,6 +16,16 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   app:
     build: .
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
@@ -25,9 +35,37 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://postgres:sba_postgres@db:5432/knowledge
+      REDIS_URL: redis://redis:6379
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: python worker.py
+    volumes:
+      - ./:/app
+    environment:
+      DATABASE_URL: postgresql://postgres:sba_postgres@db:5432/knowledge
+      REDIS_URL: redis://redis:6379
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:8080"
+    environment:
+      VITE_API_URL: http://localhost:8000
+    depends_on:
+      - app
 
 volumes:
   postgres_data:

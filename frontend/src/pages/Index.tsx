@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
@@ -32,32 +31,38 @@ const Index = () => {
     }
   };
 
+  const handleNoteSelect = (id: string) => {
+    setSelectedNoteId(id);
+    setCurrentView('note');
+  };
+
   const renderMainContent = () => {
     switch (currentView) {
       case 'notes':
-        return <NoteList onNoteSelect={(id) => handleViewChange('note', id)} />;
+        return <NoteList onNoteSelect={handleNoteSelect} />;
       case 'note':
         return (
           <NoteView 
             noteId={selectedNoteId} 
             onEdit={() => handleViewChange('editor', selectedNoteId)}
             onBack={() => handleViewChange('notes')}
+            onNoteSelect={handleNoteSelect}
           />
         );
       case 'editor':
         return (
           <NoteEditor 
             noteId={selectedNoteId}
-            onSave={() => handleViewChange('note', selectedNoteId)}
+            onSave={() => selectedNoteId ? handleViewChange('note', selectedNoteId) : handleViewChange('notes')}
             onCancel={() => selectedNoteId ? handleViewChange('note', selectedNoteId) : handleViewChange('notes')}
           />
         );
       case 'graph':
-        return <GraphView onNodeClick={(id) => handleViewChange('note', id)} />;
+        return <GraphView onNodeClick={handleNoteSelect} />;
       case 'search':
-        return <SearchResults query={searchQuery} onNoteSelect={(id) => handleViewChange('note', id)} />;
+        return <SearchResults query={searchQuery} onNoteSelect={handleNoteSelect} />;
       default:
-        return <NoteList onNoteSelect={(id) => handleViewChange('note', id)} />;
+        return <NoteList onNoteSelect={handleNoteSelect} />;
     }
   };
 
@@ -74,7 +79,10 @@ const Index = () => {
           isOpen={isSidebarOpen}
           currentView={currentView}
           onViewChange={handleViewChange}
-          onNewNote={() => handleViewChange('editor')}
+          onNewNote={() => {
+            setSelectedNoteId(null);
+            handleViewChange('editor');
+          }}
         />
         
         <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-0' : 'ml-0'} lg:${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
